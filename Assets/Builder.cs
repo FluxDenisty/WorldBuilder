@@ -18,7 +18,7 @@ public class Builder : MonoBehaviour {
 
 	public Tile[,] map;
 
-	void Start () {
+	void Awake () {
 		this.map = new Tile[this.width, this.height];
 		for (int x = 0; x < this.width; x++) {
 			for (int y = 0; y < this.height; y++) {
@@ -30,6 +30,12 @@ public class Builder : MonoBehaviour {
 	}
 	
 	private IEnumerator BuildCoroutine() {
-		yield return null;
+        for (int x = 0; x < this.width; x++) {
+            for (int y = 0; y < this.height; y++) {
+                this.map[x, y].type = (Random.Range(0, 2) == 0 ? Tile.Type.LAND : Tile.Type.OCEAN);
+            }
+            yield return null;
+        }
+        yield return null;
 	}
 }

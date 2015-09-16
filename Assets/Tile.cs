@@ -9,4 +9,18 @@ public class Tile {
 	}
 
 	public Type type = Type.OCEAN;
+
+    public Color Colour {
+        get { 
+            switch (this.type)
+            {
+                case Type.LAND:
+                    return Color.green;
+                case Type.OCEAN:
+                    return Color.blue;
+                default:
+                    return Color.black;
+            }
+        }
+    }
 }
