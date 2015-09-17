@@ -25,7 +25,7 @@ public class MapRenderer : MonoBehaviour {
         this.sprite.sprite = Sprite.Create(this.texture, new Rect(0, 0, this.builder.Width, this.builder.Height), new Vector2(0.5f, 0.5f));
 
         float height = 10f / (this.texture.height / 100f);
-        this.sprite.transform.localScale = new Vector3(height * this.texture.width / this.texture.height, height, 1);
+        this.sprite.transform.localScale = new Vector3(height, height, 1);
 	}
 	
 	// Update is called once per frame
