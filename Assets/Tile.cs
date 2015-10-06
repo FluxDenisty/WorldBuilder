@@ -8,7 +8,17 @@ public class Tile {
 		LAND
 	}
 
-	public Type type = Type.OCEAN;
+    public int X {
+        private set;
+        get;
+    }
+
+    public int Y {
+        private set;
+        get;
+    }
+
+    public Type type = Type.OCEAN;
 
     public Color Colour {
         get { 
@@ -22,5 +32,10 @@ public class Tile {
                     return Color.black;
             }
         }
+    }
+
+    public Tile(int x, int y) {
+        this.X = x;
+        this.Y = y;
     }
 }
