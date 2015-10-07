@@ -13,8 +13,7 @@ public class MapRenderer : MonoBehaviour {
 
     SpriteRenderer sprite = null;
 
-    void Awake()
-    {
+    void Awake() {
         this.sprite = this.GetComponent<SpriteRenderer>();
     }
 
@@ -26,15 +25,12 @@ public class MapRenderer : MonoBehaviour {
 
         float height = 10f / (this.texture.height / 100f);
         this.sprite.transform.localScale = new Vector3(height, height, 1);
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        for (int x = 0; x < this.builder.Width; x++)
-        {
-            for (int y = 0; y < this.builder.Height; y++)
-            {
-                this.colours[x + y * this.builder.Width] = this.builder.map[x, y].Colour;
+//	}
+//
+//	void Update () {
+        for (int x = 0; x < this.builder.Width; x++) {
+            for (int y = 0; y < this.builder.Height; y++) {
+				this.colours[x + y * this.builder.Width] = Color.white * Mathf.PerlinNoise(x / (float)this.builder.Width * 10f, y / (float)this.builder.Height * 10f);// this.builder.map[x, y].Colour;
             }
         }
 

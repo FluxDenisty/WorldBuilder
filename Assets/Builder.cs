@@ -30,7 +30,7 @@ public class Builder : MonoBehaviour {
 	}
 	
 	private IEnumerator BuildCoroutine() {
-        yield return this.StartCoroutine(this.GenerateMainland());
+        yield return this.StartCoroutine(this.GeneratePerlinLand());
         for (int x = 0; x < this.width; x++) {
             for (int y = 0; y < this.height; y++) {
                 // this.map[x, y].type = (Random.Range(0, 1) == 0 ? Tile.Type.LAND : Tile.Type.OCEAN);
@@ -38,6 +38,27 @@ public class Builder : MonoBehaviour {
             yield return null;
         }
         yield return null;
+
+		Debug.Log("DONE!");
+	}
+
+	private IEnumerator GeneratePerlinLand() {
+		float seed = Random.Range(0f, 1f);
+
+		int yieldCounter = 0;
+
+		for (int x = Mathf.RoundToInt(this.width * 0.05f); x < Mathf.RoundToInt(this.width * 0.95f); x++) {
+			for (int y = Mathf.RoundToInt(this.height * 0.05f); y < Mathf.RoundToInt(this.height * 0.95f); y++) {
+//				Debug.Log(Mathf.PerlinNoise(x / (float)this.width + seed, y / (float)this.height + seed));
+				if (Mathf.PerlinNoise(x / (float)this.width + seed, y / (float)this.height + seed) > 0.5f) {
+					this.map[x, y].type = Tile.Type.LAND;
+				}
+			}
+			if (yieldCounter++ >= 500) {
+                yieldCounter = 0;
+                yield return null;
+            }
+		}
 	}
 
     private IEnumerator GenerateMainland() {
@@ -68,23 +89,41 @@ public class Builder : MonoBehaviour {
 
         float sectionSize = (float)this.height / (Mathf.Sqrt(SECTIONS / (this.width / (float)this.height)));
 
-        int circleSize = 0;
-        for (int x = 0; x < secWidth; x++) {
-            for (int y = 0; y < secHeight; y++) {
-                if (isLand[x, y]) {
-                    circleSize = this.SetTypeCircle(
-                        Mathf.RoundToInt(x * sectionSize + sectionSize / 2),
-                        Mathf.RoundToInt(y * sectionSize + sectionSize / 2),
-                        Tile.Type.LAND, sectionSize * 0.2f);
+		// Place dots on grid.
+//        int circleSize = 0;
+//        for (int x = 0; x < secWidth; x++) {
+//            for (int y = 0; y < secHeight; y++) {
+//                if (isLand[x, y]) {
+//                    circleSize = this.SetTypeCircle(
+//                        Mathf.RoundToInt(x * sectionSize + sectionSize / 2),
+//                        Mathf.RoundToInt(y * sectionSize + sectionSize / 2),
+//                        Tile.Type.LAND, sectionSize * 0.2f);
+//
+//                    if (yieldCounter++ >= 5) {
+//                        yieldCounter = 0;
+//                        yield return null;
+//                    }
+//                }
+//            }
+//        }
 
-                    if (yieldCounter++ >= 5) {
-                        yieldCounter = 0;
-                        yield return null;
-                    }
-                }
+		// Place dots randomly.
+		const float PERCENT_LAND = 0.4f;
+		const float PERCENT_DOTS = 0.5f;
+		int leftToFill = Mathf.RoundToInt(this.width * this.height * PERCENT_LAND);
+		while (leftToFill > Mathf.RoundToInt(this.width * this.height * PERCENT_LAND * (1f - PERCENT_DOTS))) {
+			leftToFill -= this.SetTypeCircle(
+				Mathf.RoundToInt(Random.Range(this.width * 0.05f, this.width * 0.95f)),
+				Mathf.RoundToInt(Random.Range(this.height * 0.05f, this.height * 0.95f)),
+				Tile.Type.LAND, Random.Range(5, 10));
+				
+            if (yieldCounter++ >= 5) {
+                yieldCounter = 0;
+                yield return null;
             }
-        }
+		}
 
+		// Complile a list of possible land placements
         List<Tile> possible = new List<Tile>();
         for (int x = 0; x < this.width; x++) {
             for (int y = 0; y < this.height; y++) {
@@ -100,9 +139,9 @@ public class Builder : MonoBehaviour {
             }
         }
 
-        Debug.Log(Mathf.RoundToInt(sectionSize * sectionSize) - circleSize);
-        int totalToFill = (Mathf.RoundToInt(sectionSize * sectionSize) - circleSize) * LAND_SECTIONS * 3;
-        int leftToFill = totalToFill;
+		// Randomly place the remaining land tiles.
+//        int totalToFill = (Mathf.RoundToInt(sectionSize * sectionSize) - circleSize) * LAND_SECTIONS * 3;
+//        int leftToFill = totalToFill;
         while (leftToFill > 0) {
             int i = Random.Range(0, possible.Count - 1);
             Tile tile = possible[i];
@@ -111,22 +150,22 @@ public class Builder : MonoBehaviour {
             possible.AddRange(this.Adjacent(tile).FindAll(t => t.type == Tile.Type.OCEAN));
             leftToFill--;
 
-            if (yieldCounter++ >= totalToFill / 200) {
+            if (yieldCounter++ >= this.width * this.height * PERCENT_LAND / 200f) {
                 yieldCounter = 0;
                 yield return null;
             }
         }
-
-        yield break;
     }
 
     private int SetTypeCircle(int centerX, int centerY, Tile.Type type, float radius) {
         int count = 0;
-        for (int x = Mathf.FloorToInt(centerX - radius); x < Mathf.CeilToInt(centerX + radius); x++) {
-            for (int y = Mathf.FloorToInt(centerY - radius); y < Mathf.CeilToInt(centerY + radius); y++) {
+        for (int x = Mathf.Max(0, Mathf.FloorToInt(centerX - radius)); x < Mathf.CeilToInt(centerX + radius) && x < this.width; x++) {
+            for (int y = Mathf.Max(0, Mathf.FloorToInt(centerY - radius)); y < Mathf.CeilToInt(centerY + radius) && y < this.height; y++) {
                 if (Mathf.Sqrt(Mathf.Pow(x-centerX, 2) + Mathf.Pow(y-centerY, 2)) <= radius) {
-                    this.map[x, y].type = type;
-                    count++;
+					if (this.map[x, y].type != type) {
+	                    this.map[x, y].type = type;
+	                    count++;
+					}
                 }
             }
         }
